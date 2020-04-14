@@ -5,6 +5,6 @@ account: ohana
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 2117326
-bundleId: 3013331
+bundleId: 3013342
 url: https://ohana.shinyapps.io/dailycovid/
-when: 1586893270.7681
+when: 1586893426.54163
