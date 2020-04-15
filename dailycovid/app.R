@@ -1,49 +1,79 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+library(tidyverse)
+library(shinythemes)
 
-library(shiny)
+source("datagraber.R")
+date_range <- unique(cleandata$date)
+model_date <- max(date_range)
+cols <- c("AR" = "darkgreen", "UT" = "blue", "HI" = "orange")
+var.labels = c("Confirmed Cases", "Deaths")
 
-# Define UI for application that draws a histogram
 ui <- fluidPage(
-
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 150,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
+  theme = shinythemes::shinytheme("superhero"),
+  # tags$style("* { font-family: Arial; }"),
+  
+  titlePanel("COVID-19 Tracking for Young Ohana"),
+  
+  sidebarLayout(
+    sidebarPanel(
+      tableOutput("table2"),
+      hr(),
+      selectInput(inputId = "type",
+                  label = h4("Select Data to Graph"),
+                  choices = c("Confirmed Cases" = "positive",
+                              "Deaths" = "death",
+                              "Recoveries" = "recovered",
+                              "Hospitalizations" = "hospitalized",
+                              "Total Tests Performed" = "totalTestResults"),
+                  selected = "positive"),
+      hr(),
+      h4("Details"),
+      p("Contact for source code for this app: ", a("Sean Young", target="_blank", href="mailto:dabriase@gmail.com"))
+    ),
+    mainPanel(
+      tabsetPanel(type = "tabs",
+                  tabPanel("Graph", plotOutput("plot")),
+                  tabPanel("Raw Data Table", tableOutput("table")))
     )
+  )
 )
 
-# Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+  plot_input <- reactive({
+    
+    column_I_want = input$type
+    
+    ggplot(data = cleandata, aes(x = date, y = !!as.name(column_I_want), group = state)) +
+      geom_line(aes(color = state), size = 1) + 
+      labs(
+        title   = "COVID-19 Stats for Young Ohana States",
+        x       = "",
+        y       = "Number of Individuals",
+        color   = "",
+        caption = paste0("Data from covidtracking.com, as of: ", model_date)
+      ) +
+      scale_colour_manual(values = cols) +
+      scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
+      theme_minimal() +
+      theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+            plot.caption = element_text(hjust = 0.5, size = 12, face = "bold"),
+            axis.text=element_text(size=10),
+            axis.title=element_text(size=12),
+            legend.position = "bottom")
+    
+  })
+  
+  
+  output$plot <- renderPlot({ plot_input() })
+  
+  output$table <- renderTable({
+    cleandata
+  })
+  
+  output$table2 <- renderTable({
+    slimtable
+  })
 
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'purple', border = 'white')
-    })
 }
 
-# Run the application 
-shinyApp(ui = ui, server = server)
+shinyApp(ui, server)
