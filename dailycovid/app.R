@@ -1,5 +1,6 @@
 library(tidyverse)
 library(shinythemes)
+library(DT)
 
 source("datagraber.R")
 date_range <- unique(cleandata$date)
@@ -32,7 +33,7 @@ ui <- fluidPage(
     mainPanel(
       tabsetPanel(type = "tabs",
                   tabPanel("Graph", plotOutput("plot")),
-                  tabPanel("Raw Data Table", tableOutput("table")))
+                  tabPanel("Raw Data Table", dataTableOutput("table")))
     )
   )
 )
@@ -66,7 +67,7 @@ server <- function(input, output, session) {
   
   output$plot <- renderPlot({ plot_input() })
   
-  output$table <- renderTable({
+  output$table <- renderDataTable({
     cleandata
   })
   
