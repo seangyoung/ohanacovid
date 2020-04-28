@@ -45,7 +45,7 @@ server <- function(input, output, session) {
     
     column_I_want = input$type
     
-    g = ggplot(data = cleandata, aes(x = date, y = !!as.name(column_I_want), group = state)) +
+    g = ggplot(data = cleandata, aes(x = date, y = !!as.name(column_I_want), group = state, text = paste0(state, " ", column_I_want, ": ", !!as.name(column_I_want), "\nDate: ", date))) +
         geom_line(aes(color = state), size = 1) + 
         labs(
           title   = "COVID-19 Stats for Young Ohana States",
@@ -54,6 +54,7 @@ server <- function(input, output, session) {
           color   = "",
           caption = paste0("Data from covidtracking.com, as of: ", model_date)
         ) +
+        scale_x_date(date_breaks = "1 week", date_labels = "%b %d") + 
         scale_colour_manual(values = cols) +
         scale_y_continuous(labels = function(x) format(x, scientific = FALSE)) +
         theme_minimal() +
@@ -62,7 +63,7 @@ server <- function(input, output, session) {
               axis.text=element_text(size=10),
               axis.title=element_text(size=12),
               legend.position = "bottom")
-    p = ggplotly(g)
+    p = ggplotly(g, tooltip = "text")
     p
   })
   
